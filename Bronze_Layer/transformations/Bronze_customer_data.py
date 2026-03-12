@@ -1,4 +1,4 @@
-from pyspark.sql.functions import current_timestamp, col
+from pyspark.sql.functions import current_timestamp, col,when,rand
 import logging
 
 # --------------------------------------------------
@@ -13,7 +13,7 @@ logger = logging.getLogger("bronze_ingestion")
 # --------------------------------------------------
 
 SOURCE_PATH = "s3://bank-customer-churn-data/processed/"
-BRONZE_TABLE = "churn_catalog.raw.customer_data"
+BRONZE_TABLE = "churn_catalog.raw.customer_data1"
 
 try:
 
@@ -52,16 +52,32 @@ try:
 
         logger.info("Column normalization completed")
 
+        
         # --------------------------------------------------
-        # Add Bronze metadata
+        # Replace surnames with NULL
         # --------------------------------------------------
-
-        df_bronze = df \
-            .withColumn("ingestion_timestamp", current_timestamp()) \
-            .withColumn("source_file", col("_metadata.file_path"))
-
-        logger.info("Metadata columns added")
-
+        df = df.withColumn(
+            "surname",
+            when(rand() < 0.1, None).otherwise(col("surname"))
+        )
+        
+        logger.info("surnames replaced with NULL values")
+         # --------------------------------------------------
+        # Replace creditscore with NULL
+        # --------------------------------------------------
+        df = df.withColumn(
+           "creditscore",
+           when(rand() < 0.1, None).otherwise(col("creditscore"))
+        )
+        logger.info("credit score replaced with NULL values")
+        # --------------------------------------------------
+        # Replace gender with NULL
+        # --------------------------------------------------
+        df = df.withColumn(
+            "gender",
+            when(rand() < 0.1, " ").otherwise(col("gender"))
+        )
+        logger.info("gender replaced with NULL values")
         # --------------------------------------------------
         # Ensure Bronze schema exists
         # --------------------------------------------------
@@ -74,7 +90,7 @@ try:
         # Write data to Bronze Delta table
         # --------------------------------------------------
 
-        df_bronze.write \
+        df.write \
             .format("delta") \
             .mode("append") \
             .option("mergeSchema", "true") \

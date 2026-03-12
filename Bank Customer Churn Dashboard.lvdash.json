@@ -1,0 +1,53 @@
+{
+  "datasets": [
+    {
+      "name": "3a3e8d88",
+      "displayName": "dim_activity",
+      "queryLines": [
+        "SELECT * FROM churn_catalog.gold.dim_activity"
+      ]
+    },
+    {
+      "name": "0433ce2a",
+      "displayName": "dim_customer",
+      "queryLines": [
+        "SELECT * FROM churn_catalog.gold.dim_customer"
+      ]
+    },
+    {
+      "name": "6cc2ba71",
+      "displayName": "dim_geography",
+      "queryLines": [
+        "SELECT * FROM churn_catalog.gold.dim_geography"
+      ]
+    },
+    {
+      "name": "c5d939b9",
+      "displayName": "fact_customer_churn",
+      "queryLines": [
+        "SELECT * FROM churn_catalog.gold.fact_customer_churn"
+      ]
+    },
+    {
+      "name": "fde091b8",
+      "displayName": "dim_product",
+      "queryLines": [
+        "SELECT * FROM churn_catalog.gold.dim_product"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "dcf932ea",
+      "displayName": "Untitled page",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
