@@ -34,12 +34,745 @@
       "queryLines": [
         "SELECT * FROM churn_catalog.gold.dim_product"
       ]
+    },
+    {
+      "name": "9a8e7f05",
+      "displayName": "customer_count_by_country",
+      "queryLines": [
+        "SELECT \r\n",
+        "    g.country,\r\n",
+        "    COUNT(f.customer_id) AS total_customers\r\n",
+        "FROM churn_catalog.gold.fact_customer_churn f\r\n",
+        "JOIN churn_catalog.gold.dim_geography g\r\n",
+        "ON f.geo_id = g.geo_id\r\n",
+        "GROUP BY g.country\r\n",
+        "ORDER BY total_customers DESC;"
+      ]
+    },
+    {
+      "name": "2a8a6724",
+      "displayName": "avg_balance_by_product_usage",
+      "queryLines": [
+        "SELECT\r\n",
+        "p.product_usage_level,\r\n",
+        "AVG(f.balance) AS avg_balance\r\n",
+        "FROM dim_product p\r\n",
+        "JOIN fact_customer_churn f\r\n",
+        "ON p.product_id = f.product_id\r\n",
+        "GROUP BY p.product_usage_level;"
+      ],
+      "catalog": "churn_catalog",
+      "schema": "gold"
+    },
+    {
+      "name": "e37be45a",
+      "displayName": "customer_activity_analysis",
+      "queryLines": [
+        "SELECT \r\n",
+        "    CASE \r\n",
+        "        WHEN a.is_active_member = 1 THEN 'Active Customers'\r\n",
+        "        ELSE 'Inactive Customers'\r\n",
+        "    END AS customer_status,\r\n",
+        "    COUNT(f.customer_id) AS customers\r\n",
+        "FROM churn_catalog.gold.fact_customer_churn f\r\n",
+        "JOIN churn_catalog.gold.dim_activity a\r\n",
+        "ON f.activity_id = a.activity_id\r\n",
+        "GROUP BY customer_status;"
+      ]
+    },
+    {
+      "name": "8f788a36",
+      "displayName": "financial_behavior_analysis",
+      "queryLines": [
+        "SELECT\r\n",
+        "    'Average Credit Score' AS metric,\r\n",
+        "    AVG(credit_score) AS value\r\n",
+        "FROM churn_catalog.gold.fact_customer_churn\r\n",
+        "\r\n",
+        "UNION ALL\r\n",
+        "\r\n",
+        "SELECT\r\n",
+        "    'Average Balance' AS metric,\r\n",
+        "    AVG(balance) AS value\r\n",
+        "FROM churn_catalog.gold.fact_customer_churn;"
+      ]
     }
   ],
   "pages": [
     {
       "name": "dcf932ea",
-      "displayName": "Untitled page",
+      "displayName": "Customer Distribution by Country",
+      "layout": [
+        {
+          "widget": {
+            "name": "customer-distribution-by-country",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "9a8e7f05",
+                  "fields": [
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    },
+                    {
+                      "name": "total_customers",
+                      "expression": "`total_customers`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Customer Distribution by Country",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "total_customers",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "SPAIN",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 10
+                        }
+                      },
+                      {
+                        "value": "FRANCE",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 7
+                        }
+                      }
+                    ]
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "361daca9",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "9a8e7f05",
+                  "fields": [
+                    {
+                      "name": "sum(total_customers)",
+                      "expression": "SUM(`total_customers`)"
+                    },
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(total_customers)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "44200dc2",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "9a8e7f05",
+                  "fields": [
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    },
+                    {
+                      "name": "total_customers",
+                      "expression": "`total_customers`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "combo",
+              "encodings": {
+                "x": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "primary": {
+                    "fields": [
+                      {
+                        "fieldName": "total_customers"
+                      }
+                    ]
+                  },
+                  "secondary": {
+                    "fields": []
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "2bf36961",
+      "displayName": "avg_balance by product usage",
+      "layout": [
+        {
+          "widget": {
+            "name": "avg-balance",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2a8a6724",
+                  "fields": [
+                    {
+                      "name": "product_usage_level",
+                      "expression": "`product_usage_level`"
+                    },
+                    {
+                      "name": "sum(avg_balance)",
+                      "expression": "SUM(`avg_balance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "avg_balance by product usage"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "product_usage_level",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(avg_balance)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "829b0005",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2a8a6724",
+                  "fields": [
+                    {
+                      "name": "product_usage_level",
+                      "expression": "`product_usage_level`"
+                    },
+                    {
+                      "name": "avg_balance",
+                      "expression": "`avg_balance`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "product_usage_level",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg_balance",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "149882b0",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "2a8a6724",
+                  "fields": [
+                    {
+                      "name": "product_usage_level",
+                      "expression": "`product_usage_level`"
+                    },
+                    {
+                      "name": "sum(avg_balance)",
+                      "expression": "SUM(`avg_balance`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "scatter",
+              "encodings": {
+                "x": {
+                  "fieldName": "product_usage_level",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(avg_balance)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "product_usage_level",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 12,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "c43e80bf",
+      "displayName": "customer activity analysis",
+      "layout": [
+        {
+          "widget": {
+            "name": "customer-activity-analysis",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e37be45a",
+                  "fields": [
+                    {
+                      "name": "customer_status",
+                      "expression": "`customer_status`"
+                    },
+                    {
+                      "name": "sum(customers)",
+                      "expression": "SUM(`customers`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "customer activity analysis"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "customer_status",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(customers)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 11,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "3ae284bf",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e37be45a",
+                  "fields": [
+                    {
+                      "name": "sum(customers)",
+                      "expression": "SUM(`customers`)"
+                    },
+                    {
+                      "name": "customer_status",
+                      "expression": "`customer_status`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(customers)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "customer_status",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 11,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "6119d5dd",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e37be45a",
+                  "fields": [
+                    {
+                      "name": "sum(customers)",
+                      "expression": "SUM(`customers`)"
+                    },
+                    {
+                      "name": "customer_status",
+                      "expression": "`customer_status`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "sum(customers)"
+                  },
+                  {
+                    "fieldName": "customer_status"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 13,
+            "width": 11,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "c2d2a0cb",
+      "displayName": "financial_behavior_analysis",
+      "layout": [
+        {
+          "widget": {
+            "name": "financial-behavior-analysis",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "8f788a36",
+                  "fields": [
+                    {
+                      "name": "metric",
+                      "expression": "`metric`"
+                    },
+                    {
+                      "name": "sum(value)",
+                      "expression": "SUM(`value`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "financial_behavior_analysis"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "metric",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(value)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "96d0f417",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "8f788a36",
+                  "fields": [
+                    {
+                      "name": "sum(value)",
+                      "expression": "SUM(`value`)"
+                    },
+                    {
+                      "name": "metric",
+                      "expression": "`metric`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(value)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "metric",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "45070e0a",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "8f788a36",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "`value`"
+                    },
+                    {
+                      "name": "sum(value)",
+                      "expression": "SUM(`value`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "frame": {
+                "showTitle": true
+              },
+              "widgetType": "sankey",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(value)"
+                },
+                "stages": [
+                  {
+                    "fieldName": "value"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
       "pageType": "PAGE_TYPE_CANVAS",
       "layoutVersion": "GRID_V1"
     }

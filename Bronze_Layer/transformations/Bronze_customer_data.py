@@ -54,14 +54,14 @@ try:
 
         
         # --------------------------------------------------
-        # Replace surnames with NULL
+        # Replace surnames containing special characters with NULL
         # --------------------------------------------------
         df = df.withColumn(
             "surname",
-            when(rand() < 0.1, None).otherwise(col("surname"))
+            when(col("surname").rlike("[^a-zA-Z]"), "").otherwise(col("surname"))
         )
         
-        logger.info("surnames replaced with NULL values")
+        logger.info("Invalid surnames replaced with NULL values")
          # --------------------------------------------------
         # Replace creditscore with NULL
         # --------------------------------------------------

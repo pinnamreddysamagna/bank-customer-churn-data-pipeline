@@ -1,6 +1,6 @@
-# New Pipeline 2026-03-12 15:13
+# New Pipeline 2026-03-13 10:40
 
-This folder defines all source code for the 'New Pipeline 2026-03-12 15:13' pipeline:
+This folder defines all source code for the 'New Pipeline 2026-03-13 10:40' pipeline:
 
 - `explorations`: Ad-hoc notebooks used to explore the data processed by this pipeline.
 - `transformations`: All dataset definitions and transformations.
@@ -11,7 +11,7 @@ This folder defines all source code for the 'New Pipeline 2026-03-12 15:13' pipe
 To get started, go to the `transformations` folder -- most of the relevant source code lives there:
 
 * By convention, every dataset under `transformations` is in a separate file.
-* Take a look at the sample under "sample_users_mar_12_1513.py" to get familiar with the syntax.
+* Take a look at the sample under "sample_users_mar_13_1040.py" to get familiar with the syntax.
   Read more about the syntax at https://docs.databricks.com/ldp/developer/python-ref.
 * Use `Run file` to run and preview a single transformation.
 * Use `Run pipeline` to run _all_ transformations in the entire pipeline.

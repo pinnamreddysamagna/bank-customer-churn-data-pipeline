@@ -1,30 +1,37 @@
 import logging
 from pyspark.sql.functions import *
+from pyspark.sql.functions import monotonically_increasing_id
 
-# -----------------------------------
+# -------------------------------------------------
 # Logger Configuration
-# -----------------------------------
+# -------------------------------------------------
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("gold_layer")
 
 try:
 
-    logger.info("Starting Gold layer pipeline")
+    logger.info("Starting Gold Layer Pipeline")
 
-    # -----------------------------------
+    # -------------------------------------------------
+    # Ensure Gold Schema Exists
+    # -------------------------------------------------
+
+    spark.sql("CREATE SCHEMA IF NOT EXISTS churn_catalog.gold")
+
+    # -------------------------------------------------
     # Step 1 : Read Silver Table
-    # -----------------------------------
+    # -------------------------------------------------
 
     silver_table = "churn_catalog.silver.customer_cleaned1"
 
     df = spark.table(silver_table)
 
-    logger.info("Silver data loaded successfully")
+    logger.info(f"Silver data loaded. Rows: {df.count()}")
 
-    # -----------------------------------
+    # -------------------------------------------------
     # Step 2 : Feature Engineering
-    # -----------------------------------
+    # -------------------------------------------------
 
     df = df.withColumn(
         "credit_score_category",
@@ -51,83 +58,112 @@ try:
 
     logger.info("Feature engineering completed")
 
-    # -----------------------------------
-    # Step 3 : Create Dimension Tables
-    # -----------------------------------
+    # -------------------------------------------------
+    # Dimension Table - Customer
+    # -------------------------------------------------
 
     dim_customer = df.select(
-        "customerid",
+        col("customerid").alias("customer_id"),
         "surname",
         "gender",
         "age",
-        "tenure"
+        "credit_score_category"
     ).dropDuplicates()
-
-    dim_geography = df.select(
-        "geography"
-    ).dropDuplicates()
-
-    dim_product = df.select(
-        "numofproducts",
-        "product_usage_level",
-        "hascrcard"
-    ).dropDuplicates()
-
-    dim_activity = df.select(
-        "isactivemember",
-        "estimatedsalary"
-    ).dropDuplicates()
-
-    logger.info("Dimension tables created")
-
-    # -----------------------------------
-    # Step 4 : Create Fact Table
-    # -----------------------------------
-
-    fact_customer_churn = df.select(
-        "customerid",
-        "creditscore",
-        "balance",
-        "credit_score_category",
-        "balance_segment",
-        "numofproducts",
-        "product_usage_level",
-        "isactivemember"
-    )
-
-    logger.info("Fact table created")
-
-    # -----------------------------------
-    # Step 5 : Ensure Gold Schema Exists
-    # -----------------------------------
-
-    spark.sql("CREATE SCHEMA IF NOT EXISTS churn_catalog.gold")
-
-    # -----------------------------------
-    # Step 6 : Write Gold Tables
-    # -----------------------------------
 
     dim_customer.write.format("delta") \
         .mode("overwrite") \
+        .option("overwriteSchema", "true") \
         .saveAsTable("churn_catalog.gold.dim_customer")
+
+    logger.info("dim_customer created")
+
+    # -------------------------------------------------
+    # Dimension Table - Geography
+    # -------------------------------------------------
+
+    dim_geography = df.select(
+        col("geography").alias("country")
+    ).dropDuplicates()
+
+    dim_geography = dim_geography.withColumn(
+        "geo_id",
+        monotonically_increasing_id()
+    )
 
     dim_geography.write.format("delta") \
         .mode("overwrite") \
+        .option("overwriteSchema", "true") \
         .saveAsTable("churn_catalog.gold.dim_geography")
+
+    logger.info("dim_geography created")
+
+    # -------------------------------------------------
+    # Dimension Table - Product
+    # -------------------------------------------------
+
+    dim_product = df.select(
+        col("numofproducts").alias("num_of_products"),
+        "product_usage_level"
+    ).dropDuplicates()
+
+    dim_product = dim_product.withColumn(
+        "product_id",
+        monotonically_increasing_id()
+    )
 
     dim_product.write.format("delta") \
         .mode("overwrite") \
+        .option("overwriteSchema", "true") \
         .saveAsTable("churn_catalog.gold.dim_product")
+
+    logger.info("dim_product created")
+
+    # -------------------------------------------------
+    # Dimension Table - Activity
+    # -------------------------------------------------
+
+    dim_activity = df.select(
+        col("isactivemember").alias("is_active_member")
+    ).dropDuplicates()
+
+    dim_activity = dim_activity.withColumn(
+        "activity_id",
+        monotonically_increasing_id()
+    )
 
     dim_activity.write.format("delta") \
         .mode("overwrite") \
+        .option("overwriteSchema", "true") \
         .saveAsTable("churn_catalog.gold.dim_activity")
+
+    logger.info("dim_activity created")
+
+    # -------------------------------------------------
+    # Step 3 : Create Fact Table
+    # -------------------------------------------------
+
+    fact_df = df \
+        .join(dim_geography, df.geography == dim_geography.country, "left") \
+        .join(dim_product, df.numofproducts == dim_product.num_of_products, "left") \
+        .join(dim_activity, df.isactivemember == dim_activity.is_active_member, "left")
+
+    fact_customer_churn = fact_df.select(
+        col("customerid").alias("customer_id"),
+        "geo_id",
+        "product_id",
+        "activity_id",
+        col("creditscore").alias("credit_score"),
+        "balance"
+    )
 
     fact_customer_churn.write.format("delta") \
         .mode("overwrite") \
+        .option("overwriteSchema", "true") \
         .saveAsTable("churn_catalog.gold.fact_customer_churn")
 
-    logger.info("Gold tables successfully created")
+    logger.info("fact_customer_churn created")
+
+    logger.info("Gold Layer Pipeline Completed Successfully")
 
 except Exception as e:
 

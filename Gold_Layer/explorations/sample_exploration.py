@@ -10,10 +10,10 @@
 
 import sys
 
-sys.path.append("/Workspace/Shared/Bank_customer_churn_Project/bank-customer-churn-data-pipeline/Silver_Layer/New Pipeline 2026-03-11 16:43")
+sys.path.append("/Workspace/Shared/Bank_customer_churn_Project/bank-customer-churn-data-pipeline/New Pipeline 2026-03-13 10:40")
 
 # COMMAND ----------
 
 # !!! Before performing any data analysis, make sure to run the pipeline to materialize the sample datasets. The tables referenced in this notebook depend on that step.
 
-display(spark.sql("SELECT * FROM churn_catalog.silver.sample_aggregation_mar_11_1643"))
+display(spark.sql("SELECT * FROM workspace.default.sample_aggregation_mar_13_1040"))
