@@ -95,9 +95,13 @@ Kaggle Dataset (Bank_Customer.csv)
 - **Raw CSV (sensor input)**: `s3://bank-customer-churn-data/raw/test.csv` (see `Development/Airflow/bank_churn_dag.py`)
 - **Processed Parquet (Glue output / Bronze input)**: `s3://bank-customer-churn-data/processed/` (see `Development/Databricks/Bronze_customer_data.py`)
 
+![Project Architecture](assets/S3.png)
+
 ### Glue job (example used in this repo)
 
 - **Glue job name**: `Bank_churn_Parquet_Etl` (see `Development/Airflow/bank_churn_dag.py`)
+![Project Architecture](assets/Glue.png)
+
 
 ### Orchestration (MWAA / Airflow)
 
@@ -111,6 +115,8 @@ The Airflow DAG waits for the raw file in S3, triggers the Glue job, and then tr
 
 - **Table (in this repo)**: `churn_catalog.raw.customer_data1`
 
+![Project Architecture](assets/Bronze.png)
+
 **Operations**
 
 - Ingest processed parquet from S3 (output of Glue job)
@@ -119,6 +125,8 @@ The Airflow DAG waits for the raw file in S3, triggers the Glue job, and then tr
 - Store in Delta format
 
 ### Silver Layer
+
+![Project Architecture](assets/Silver.png)
 
 - **Table (in this repo)**: `churn_catalog.silver.customer_cleaned1`
 
@@ -130,6 +138,8 @@ The Airflow DAG waits for the raw file in S3, triggers the Glue job, and then tr
 - Clean inconsistencies
 
 ### Gold Layer
+
+![Project Architecture](assets/Gold.png)
 
 #### Dimension tables
 
